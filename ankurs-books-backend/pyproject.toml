@@ -1,0 +1,11 @@
+[project]
+name = "ankurs-books-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "curl-cffi>=0.15.0",
+    "rich>=15.0.0",
+]
