@@ -78,6 +78,31 @@ export function AudioPlayer({ audioUrl, hymnKey }: Props) {
     return () => window.removeEventListener('beforeunload', savePosition)
   }, [savePosition])
 
+  // Global keyboard shortcuts: Space = play/pause, ←/→ = skip ±10s
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      // Don't fire when typing in an input, textarea, select, or contenteditable
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if ((e.target as HTMLElement)?.isContentEditable) return
+      if (!loaded) return
+
+      if (e.code === 'Space') {
+        e.preventDefault()
+        togglePlay()
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault()
+        skip(-10)
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault()
+        skip(10)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, isPlaying, duration])
+
   function handleLoadedMetadata() {
     if (audioRef.current) {
       setDuration(audioRef.current.duration)

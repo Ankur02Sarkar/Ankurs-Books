@@ -67,27 +67,37 @@ export default async function HymnPage({ params }: Props) {
   const roman = ROMAN[book.bookNum] ?? String(book.bookNum)
   const verses = parseVerses(hymn.content)
 
-  // Adjacent hymn navigation
+  // Adjacent hymn navigation — cross book boundaries correctly
   const prevHymn = hymnNum > 1 ? hymnNum - 1 : null
   const nextHymn = hymnNum < book.hymns.length ? hymnNum + 1 : null
-  const prevBook = bookNum > 1 ? bookNum - 1 : null
-  const nextBook = bookNum < 10 ? bookNum + 1 : null
 
-  // Prev/next links (cross book boundaries)
+  // Fetch adjacent books only when needed (build-time, cached)
+  const [prevBookData, nextBookData] = await Promise.all([
+    hymnNum === 1 && bookNum > 1 ? getBook(bookNum - 1) : Promise.resolve(null),
+    hymnNum === book.hymns.length && bookNum < 10 ? getBook(bookNum + 1) : Promise.resolve(null),
+  ])
+
   let prevLink: string | null = null
   let nextLink: string | null = null
+  let prevLabel: string | null = null
+  let nextLabel: string | null = null
 
   if (prevHymn) {
     prevLink = `/book/${bookNum}/hymn/${prevHymn}`
-  } else if (prevBook) {
-    // Last hymn of previous book — we don't know its count without fetching; link to book instead
-    prevLink = `/book/${prevBook}`
+    prevLabel = `Hymn ${prevHymn}`
+  } else if (prevBookData) {
+    // Link directly to the last hymn of the previous book
+    const lastHymn = prevBookData.hymns.length
+    prevLink = `/book/${prevBookData.bookNum}/hymn/${lastHymn}`
+    prevLabel = `Book ${prevBookData.bookNum}, Hymn ${lastHymn}`
   }
 
   if (nextHymn) {
     nextLink = `/book/${bookNum}/hymn/${nextHymn}`
-  } else if (nextBook) {
-    nextLink = `/book/${nextBook}/hymn/1`
+    nextLabel = `Hymn ${nextHymn}`
+  } else if (nextBookData) {
+    nextLink = `/book/${nextBookData.bookNum}/hymn/1`
+    nextLabel = `Book ${nextBookData.bookNum}, Hymn 1`
   }
 
   const hymnKey = `book-${bookNum}-hymn-${hymnNum}`
@@ -172,7 +182,7 @@ export default async function HymnPage({ params }: Props) {
 
         {/* Prev / Next navigation */}
         <div className="mt-8 flex items-center justify-between gap-4">
-          {prevLink ? (
+          {prevLink && prevLabel ? (
             <Link
               href={prevLink}
               className="group flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
@@ -184,17 +194,17 @@ export default async function HymnPage({ params }: Props) {
                 strokeWidth={1.5}
                 className="transition-transform group-hover:-translate-x-0.5"
               />
-              {prevHymn ? `Hymn ${prevHymn}` : `Book ${prevBook}`}
+              {prevLabel}
             </Link>
           ) : (
             <div />
           )}
-          {nextLink ? (
+          {nextLink && nextLabel ? (
             <Link
               href={nextLink}
               className="group flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
             >
-              {nextHymn ? `Hymn ${nextHymn}` : `Book ${nextBook}`}
+              {nextLabel}
               <HugeiconsIcon
                 icon={ArrowRight01Icon}
                 size={14}
