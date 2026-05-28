@@ -9,7 +9,8 @@
     "lint": "biome check",
     "format": "biome format --write",
     "upload-audio": "node --env-file=.env scripts/upload-audio-to-tigris.mjs",
-    "patch-json": "node --env-file=.env scripts/patch-json-audio-urls.mjs"
+    "patch-json": "node --env-file=.env scripts/patch-json-audio-urls.mjs",
+    "migrate-audio": "node --env-file=.env scripts/migrate-tigris-audio.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -2,8 +2,9 @@
  * upload-audio-to-tigris.mjs
  *
  * Uploads all MP3 audio files from public/audio/ to the Tigris
- * `ankurs-books-assets` bucket under the key prefix "audio/book-{NN}/hymn-{NNN}.mp3",
- * making them publicly accessible via the Tigris CDN.
+ * `ankurs-books-assets` bucket. The key path mirrors the local directory
+ * structure relative to public/audio/, so files must be placed at:
+ *   public/audio/rigveda/book-{NN}/hymn-{NNN}.mp3
  *
  * IDEMPOTENCY:
  *   - Maintains scripts/audio-manifest.json mapping each relative path to its
@@ -18,10 +19,10 @@
  *   (credentials read from .env via --env-file=.env)
  *
  * Tigris key pattern:
- *   audio/book-{NN}/hymn-{NNN}.mp3
+ *   audio/rigveda/book-{NN}/hymn-{NNN}.mp3
  *
  * Public CDN URL pattern:
- *   https://ankurs-books-assets.t3.tigrisfiles.io/audio/book-01/hymn-001.mp3
+ *   https://ankurs-books-assets.t3.tigrisfiles.io/audio/rigveda/book-01/hymn-001.mp3
  */
 
 import { put } from '@tigrisdata/storage';
@@ -76,7 +77,7 @@ function saveManifest(manifest) {
 }
 
 function tigrisKey(relPath) {
-  // relPath: "book-01/hymn-001.mp3"  →  key: "audio/book-01/hymn-001.mp3"
+  // relPath: "rigveda/book-01/hymn-001.mp3"  →  key: "audio/rigveda/book-01/hymn-001.mp3"
   return `audio/${relPath.replace(/\\/g, '/')}`;
 }
 
@@ -105,7 +106,7 @@ async function main() {
   // ── Check audio directory ─────────────────────────────────────
   if (!existsSync(AUDIO_DIR)) {
     console.error(`\nERROR: Audio directory not found: ${AUDIO_DIR}`);
-    console.error('Expected: public/audio/book-{NN}/hymn-{NNN}.mp3');
+    console.error('Expected: public/audio/rigveda/book-{NN}/hymn-{NNN}.mp3');
     console.error('Extract the Colab output first: unzip audio_output.zip -d public/audio/');
     process.exit(1);
   }
@@ -206,8 +207,8 @@ async function main() {
   console.log(`  Failed   : ${failed}`);
   console.log(`  Manifest : ${MANIFEST_PATH}`);
   console.log('='.repeat(62));
-  console.log(`\nCDN base: https://${CDN_HOST}/audio/`);
-  console.log('Example : https://' + CDN_HOST + '/audio/book-01/hymn-001.mp3');
+  console.log(`\nCDN base: https://${CDN_HOST}/audio/rigveda/`);
+  console.log('Example : https://' + CDN_HOST + '/audio/rigveda/book-01/hymn-001.mp3');
   console.log('\nNext: bun run patch-json');
 
   if (failed > 0) {
